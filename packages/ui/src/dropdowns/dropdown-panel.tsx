@@ -147,7 +147,7 @@ export function DropdownPanel(props: TDropdownPanelProps) {
         <FloatingPortal root={portalRoot ?? undefined}>
           <motion.div
             ref={refs.setFloating}
-            className={cn("z-30 flex flex-col outline-none", className)}
+            className={cn("z-50 flex flex-col outline-none", className)}
             style={{ ...floatingStyles, transformOrigin, ...style }}
             data-prevent-outside-click={preventOutsideClick ? true : undefined}
             data-dropdown-panel=""
