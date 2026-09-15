@@ -22,7 +22,9 @@ type Props = {
 
 const JOB_KINDS: TFleetJobKind[] = ["scrape", "search", "crawl", "browse"];
 /** Statuses after which the fleet will not change a job again. */
-const TERMINAL_STATUSES = new Set(["done", "failed", "completed", "error"]);
+const TERMINAL_STATUSES = new Set(["done", "failed", "cancelled", "expired"]);
+/** Seconds the fleet holds the create request open before it answers with a queued job. */
+const JOB_WAIT_SEC = 45;
 const POLL_INTERVAL_MS = 3000;
 /** Stop polling a job that never settles; the operator can re-select it to poll again. */
 const POLL_MAX_MS = 5 * 60 * 1000;
@@ -88,7 +90,7 @@ export const FleetJobsPanel = observer(function FleetJobsPanel(props: Props) {
     setIsCreating(true);
     setFormError(null);
     try {
-      const job = await createJob(workspaceSlug, { ...parsed.value, kind });
+      const job = await createJob(workspaceSlug, { kind, input: parsed.value ?? {}, wait: JOB_WAIT_SEC });
       if (typeof job.id === "string") setSelectedJobId(job.id);
       setToast({ type: TOAST_TYPE.SUCCESS, title: "Success!", message: "Job queued." });
     } catch (error: unknown) {
