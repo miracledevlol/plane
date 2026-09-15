@@ -13,11 +13,15 @@ class FleetIntegrationSerializer(serializers.ModelSerializer):
     """What the browser sees. The key itself is never serialized."""
 
     has_key = serializers.BooleanField(read_only=True)
+    instance_key_available = serializers.SerializerMethodField()
 
     class Meta:
         model = WorkspaceFleetIntegration
-        fields = ["is_enabled", "base_url", "api_key_hint", "has_key", "updated_at"]
+        fields = ["is_enabled", "base_url", "api_key_hint", "has_key", "instance_key_available", "updated_at"]
         read_only_fields = fields
+
+    def get_instance_key_available(self, obj):
+        return WorkspaceFleetIntegration.instance_key_available()
 
 
 class FleetIntegrationUpdateSerializer(serializers.Serializer):

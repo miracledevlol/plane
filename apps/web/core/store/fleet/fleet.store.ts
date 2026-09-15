@@ -104,7 +104,7 @@ export class FleetStore implements IFleetStore {
 
   isReady = computedFn((workspaceSlug: string) => {
     const current = this.settings[workspaceSlug];
-    return Boolean(current?.is_enabled && current?.has_key);
+    return Boolean(current?.is_enabled && (current?.has_key || current?.instance_key_available));
   });
 
   getJobIds = computedFn((workspaceSlug: string) => this.jobIdsByWorkspace[workspaceSlug] ?? []);

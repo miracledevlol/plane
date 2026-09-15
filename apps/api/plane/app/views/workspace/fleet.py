@@ -10,6 +10,9 @@ and quotas apply exactly as minted. Fleet errors are passed through with their
 ``code`` so the web app can branch on them the way the fleet client would.
 """
 
+# Django imports
+from django.conf import settings
+
 # Third party imports
 from rest_framework import status
 from rest_framework.response import Response
@@ -49,7 +52,7 @@ class FleetBaseView(BaseAPIView):
                 {"code": "fleet_disabled", "error": "The fleet integration is not enabled for this workspace."},
                 status=status.HTTP_409_CONFLICT,
             )
-        return TheFleet(integration.base_url, integration.api_key), None
+        return TheFleet(integration.base_url, integration.effective_key), None
 
     def passthrough_query(self, request):
         return {k: v for k, v in request.query_params.items() if k in PASSTHROUGH_QUERY}
@@ -83,9 +86,10 @@ class FleetIntegrationSettingsEndpoint(FleetBaseView):
             return Response(
                 {
                     "is_enabled": False,
-                    "base_url": WorkspaceFleetIntegration.DEFAULT_BASE_URL,
+                    "base_url": settings.THEFLEET_DEFAULT_URL or WorkspaceFleetIntegration.DEFAULT_BASE_URL,
                     "api_key_hint": "",
                     "has_key": False,
+                    "instance_key_available": WorkspaceFleetIntegration.instance_key_available(),
                     "updated_at": None,
                 }
             )
@@ -98,14 +102,17 @@ class FleetIntegrationSettingsEndpoint(FleetBaseView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         data = serializer.validated_data
         workspace = Workspace.objects.get(slug=slug)
-        integration, _ = WorkspaceFleetIntegration.objects.get_or_create(workspace=workspace)
+        integration, _ = WorkspaceFleetIntegration.objects.get_or_create(
+            workspace=workspace,
+            defaults={"base_url": settings.THEFLEET_DEFAULT_URL or WorkspaceFleetIntegration.DEFAULT_BASE_URL},
+        )
         if "base_url" in data:
             integration.base_url = data["base_url"]
         if "api_key" in data:
             integration.set_api_key(data["api_key"])
         if "is_enabled" in data:
             integration.is_enabled = data["is_enabled"]
-        if integration.is_enabled and not integration.has_key:
+        if integration.is_enabled and not integration.effective_key:
             return Response(
                 {"api_key": ["Paste a fleet bot key before enabling the integration."]},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -120,12 +127,12 @@ class FleetConnectionTestEndpoint(FleetBaseView):
     @allow_permission([ROLE.ADMIN], level="WORKSPACE")
     def post(self, request, slug):
         integration = integration_for(slug)
-        if integration is None or not integration.has_key:
+        if integration is None or not integration.effective_key:
             return Response(
                 {"code": "fleet_disabled", "error": "No fleet key is stored yet."}, status=status.HTTP_409_CONFLICT
             )
         try:
-            usage = TheFleet(integration.base_url, integration.api_key).usage()
+            usage = TheFleet(integration.base_url, integration.effective_key).usage()
         except FleetError as e:
             return fleet_error_response(e)
         return Response({"ok": True, "usage": usage})

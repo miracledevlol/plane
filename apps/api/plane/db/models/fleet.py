@@ -3,6 +3,7 @@
 # See the LICENSE file for details.
 
 # Django imports
+from django.conf import settings
 from django.db import models
 
 # Module imports
@@ -56,6 +57,15 @@ class WorkspaceFleetIntegration(BaseModel):
         self.api_key_encrypted = encrypt_data(raw)
         self.api_key_hint = raw[-4:]
 
+    @staticmethod
+    def instance_key_available():
+        return bool(getattr(settings, "THEFLEET_DEFAULT_KEY", ""))
+
+    @property
+    def effective_key(self):
+        """The workspace's own key, or the instance default when none is stored."""
+        return self.api_key or getattr(settings, "THEFLEET_DEFAULT_KEY", "")
+
     @property
     def is_ready(self):
-        return self.is_enabled and self.has_key and bool(self.base_url)
+        return self.is_enabled and bool(self.effective_key) and bool(self.base_url)

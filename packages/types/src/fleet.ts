@@ -11,6 +11,8 @@ export type TFleetSettings = {
   /** Last characters of the stored key, empty when none is set. */
   api_key_hint: string;
   has_key: boolean;
+  /** The instance has a default key, so enabling works without pasting one. */
+  instance_key_available: boolean;
   updated_at: string | null;
 };
 

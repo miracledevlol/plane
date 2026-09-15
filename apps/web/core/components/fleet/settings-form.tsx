@@ -98,7 +98,12 @@ export const FleetSettingsForm = observer(function FleetSettingsForm(props: Prop
     }
   };
 
-  const keyPlaceholder = settings?.has_key ? `bk_…${settings.api_key_hint} (leave blank to keep)` : "bk_…";
+  const hasAnyKey = Boolean(settings?.has_key || settings?.instance_key_available);
+  const keyPlaceholder = settings?.has_key
+    ? `bk_…${settings.api_key_hint} (leave blank to keep)`
+    : settings?.instance_key_available
+      ? "Using the instance key (paste one to override)"
+      : "bk_…";
 
   return (
     <form onSubmit={handleSave} className="flex max-w-xl flex-col gap-4">
@@ -150,7 +155,9 @@ export const FleetSettingsForm = observer(function FleetSettingsForm(props: Prop
         </div>
         {errors.api_key && <span className="text-11 text-danger-primary">{errors.api_key}</span>}
         <span className="text-11 text-tertiary">
-          Mint an external key on the fleet&apos;s Agents screen with only the kinds and hosts this workspace needs.
+          {settings?.instance_key_available && !settings?.has_key
+            ? "This instance has a shared fleet key. Paste a workspace key here to use its own quotas and host policy."
+            : "Mint an external key on the fleet’s Agents screen with only the kinds and hosts this workspace needs."}
         </span>
       </div>
       <label htmlFor="fleet-enabled" className="flex items-center gap-2 text-13 text-primary">
@@ -174,7 +181,7 @@ export const FleetSettingsForm = observer(function FleetSettingsForm(props: Prop
           size="sm"
           type="button"
           loading={isTesting}
-          disabled={isTesting || !settings?.has_key}
+          disabled={isTesting || !hasAnyKey}
           onClick={handleTest}
         >
           {isTesting ? "Testing" : "Test connection"}

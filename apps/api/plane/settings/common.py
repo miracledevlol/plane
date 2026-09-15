@@ -417,6 +417,11 @@ LIVE_URL = urljoin(LIVE_BASE_URL, LIVE_BASE_PATH) if LIVE_BASE_URL else None
 # WEB URL
 WEB_URL = os.environ.get("WEB_URL")
 
+# thefleet: instance-wide defaults. A workspace without its own bot key uses
+# these when its admin enables the Fleet tab.
+THEFLEET_DEFAULT_URL = os.environ.get("THEFLEET_DEFAULT_URL", "https://thefleet-production.up.railway.app").rstrip("/")
+THEFLEET_DEFAULT_KEY = os.environ.get("THEFLEET_DEFAULT_KEY", "")
+
 HARD_DELETE_AFTER_DAYS = int(os.environ.get("HARD_DELETE_AFTER_DAYS", 60))
 
 
