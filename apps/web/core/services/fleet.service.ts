@@ -28,6 +28,12 @@ const baseUrl = (workspaceSlug: string) => `/api/workspaces/${workspaceSlug}/fle
 /** The fleet answers list endpoints either as a bare array or as `{ items | data | results }`. */
 const isRecord = (value: unknown): value is Record<string, unknown> => Boolean(value) && typeof value === "object";
 
+/** Jobs and watches come back wrapped, as `{ job }` or `{ watch }`; older bodies are bare. */
+const unwrap = <T>(body: unknown, key: string): T => {
+  if (isRecord(body) && isRecord(body[key])) return body[key] as T;
+  return body as T;
+};
+
 const asList = <T>(body: unknown): T[] => {
   if (Array.isArray(body)) return body.filter(isRecord) as T[];
   if (body && typeof body === "object") {
@@ -108,7 +114,7 @@ export class FleetService extends APIService {
 
   async createWatch(workspaceSlug: string, payload: TFleetJson): Promise<TFleetWatch> {
     return this.post(`${baseUrl(workspaceSlug)}/watches/`, payload)
-      .then((res) => res?.data)
+      .then((res) => unwrap<TFleetWatch>(res?.data, "watch"))
       .catch((err) => {
         throw err?.response?.data;
       });
@@ -122,9 +128,10 @@ export class FleetService extends APIService {
       });
   }
 
+  /** A 202 only means the job is still open; the job's own `status` is the truth. */
   async createJob(workspaceSlug: string, payload: TFleetJobPayload): Promise<TFleetJob> {
     return this.post(`${baseUrl(workspaceSlug)}/jobs/`, payload)
-      .then((res) => res?.data)
+      .then((res) => unwrap<TFleetJob>(res?.data, "job"))
       .catch((err) => {
         throw err?.response?.data;
       });
@@ -132,7 +139,7 @@ export class FleetService extends APIService {
 
   async getJob(workspaceSlug: string, jobId: string): Promise<TFleetJob> {
     return this.get(`${baseUrl(workspaceSlug)}/jobs/${jobId}/`)
-      .then((res) => res?.data)
+      .then((res) => unwrap<TFleetJob>(res?.data, "job"))
       .catch((err) => {
         throw err?.response?.data;
       });
