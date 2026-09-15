@@ -110,6 +110,11 @@ export const coreRoutes: RouteConfigEntry[] = [
           route(":workspaceSlug/chat", "./(all)/[workspaceSlug]/(projects)/chat/page.tsx"),
         ]),
 
+        // Workspace Fleet
+        layout("./(all)/[workspaceSlug]/(projects)/fleet/layout.tsx", [
+          route(":workspaceSlug/fleet", "./(all)/[workspaceSlug]/(projects)/fleet/page.tsx"),
+        ]),
+
         // Workspace Views
         layout("./(all)/[workspaceSlug]/(projects)/workspace-views/layout.tsx", [
           route(":workspaceSlug/workspace-views", "./(all)/[workspaceSlug]/(projects)/workspace-views/page.tsx"),

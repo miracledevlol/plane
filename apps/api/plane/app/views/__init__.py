@@ -83,6 +83,17 @@ from .workspace.cycle import WorkspaceCyclesEndpoint
 from .workspace.quick_link import QuickLinkViewSet
 from .workspace.sticky import WorkspaceStickyViewSet
 from .workspace.chat import ChatChannelViewSet, ChatMessageViewSet
+from .workspace.fleet import (
+    FleetChecksEndpoint,
+    FleetConnectionTestEndpoint,
+    FleetIntegrationSettingsEndpoint,
+    FleetJobDetailEndpoint,
+    FleetJobsEndpoint,
+    FleetServiceCallEndpoint,
+    FleetServicesEndpoint,
+    FleetUsageEndpoint,
+    FleetWatchesEndpoint,
+)
 
 from .state.base import StateViewSet, IntakeStateEndpoint
 from .view.base import (

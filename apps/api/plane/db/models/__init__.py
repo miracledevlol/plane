@@ -90,5 +90,6 @@ from .device import Device, DeviceSession
 from .sticky import Sticky
 
 from .chat import ChatChannel, ChatMessage
+from .fleet import WorkspaceFleetIntegration
 
 from .description import Description, DescriptionVersion

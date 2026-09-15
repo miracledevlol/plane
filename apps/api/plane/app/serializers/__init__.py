@@ -30,6 +30,7 @@ from .workspace import (
     StickySerializer,
 )
 from .chat import ChatChannelSerializer, ChatMessageSerializer
+from .fleet import FleetIntegrationSerializer, FleetIntegrationUpdateSerializer, FleetServiceCallSerializer
 from .project import (
     ProjectSerializer,
     ProjectListSerializer,

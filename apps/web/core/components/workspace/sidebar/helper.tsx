@@ -16,7 +16,7 @@ import {
   ViewsOutline,
   YourWorkOutline,
 } from "@makeplane/propel/icons";
-import { MessagesSquare } from "lucide-react";
+import { MessagesSquare, Radar } from "lucide-react";
 import { cn } from "@plane/utils";
 
 export const getSidebarNavigationItemIcon = (key: string, className: string = "") => {
@@ -43,5 +43,7 @@ export const getSidebarNavigationItemIcon = (key: string, className: string = ""
       return <MultipleStickyOutline className={cn("size-4 flex-shrink-0", className)} />;
     case "chat":
       return <MessagesSquare className={cn("size-4 flex-shrink-0", className)} />;
+    case "fleet":
+      return <Radar className={cn("size-4 flex-shrink-0", className)} />;
   }
 };
