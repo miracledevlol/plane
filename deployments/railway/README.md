@@ -13,16 +13,16 @@ the Dockerfile path must be set before the first deploy.
 
 ## Services
 
-| Service     | Root directory | Dockerfile path                   | Start command                       | Pre-deploy command                    | Healthcheck       |
-| ----------- | -------------- | --------------------------------- | ----------------------------------- | ------------------------------------- | ----------------- |
-| Proxy       | `/`            | `apps/proxy/Dockerfile.railway.ce`| (image default)                     |                                       | `/api/instances/` |
-| Web         | `/`            | `apps/web/Dockerfile.web`         | (image default)                     |                                       | `/`               |
-| Admin       | `/`            | `apps/admin/Dockerfile.admin`     | (image default)                     |                                       |                   |
-| Space       | `/`            | `apps/space/Dockerfile.space`     | (image default)                     |                                       | `/spaces/`        |
-| Live        | `/`            | `apps/live/Dockerfile.live`       | (image default)                     |                                       |                   |
-| API         | `apps/api`     | `Dockerfile.api`                  | (image default)                     | `./bin/docker-entrypoint-migrator.sh` | `/api/instances/` |
-| Worker      | `apps/api`     | `Dockerfile.api`                  | `./bin/docker-entrypoint-worker.sh` |                                       |                   |
-| Beat Worker | `apps/api`     | `Dockerfile.api`                  | `./bin/docker-entrypoint-beat.sh`   |                                       |                   |
+| Service     | Root directory | Dockerfile path                    | Start command                       | Pre-deploy command                    | Healthcheck       |
+| ----------- | -------------- | ---------------------------------- | ----------------------------------- | ------------------------------------- | ----------------- |
+| Proxy       | `/`            | `apps/proxy/Dockerfile.railway.ce` | (image default)                     |                                       | `/api/instances/` |
+| Web         | `/`            | `apps/web/Dockerfile.web`          | (image default)                     |                                       | `/`               |
+| Admin       | `/`            | `apps/admin/Dockerfile.admin`      | (image default)                     |                                       |                   |
+| Space       | `/`            | `apps/space/Dockerfile.space`      | (image default)                     |                                       | `/spaces/`        |
+| Live        | `/`            | `apps/live/Dockerfile.live`        | (image default)                     |                                       |                   |
+| API         | `apps/api`     | `Dockerfile.api`                   | (image default)                     | `./bin/docker-entrypoint-migrator.sh` | `/api/instances/` |
+| Worker      | `apps/api`     | `Dockerfile.api`                   | `./bin/docker-entrypoint-worker.sh` |                                       |                   |
+| Beat Worker | `apps/api`     | `Dockerfile.api`                   | `./bin/docker-entrypoint-beat.sh`   |                                       |                   |
 
 `Dockerfile.api` copies `./bin`, so its build context is `apps/api` and the
 three services that use it need that root directory. Every other Dockerfile
@@ -66,6 +66,18 @@ args, so they call `<origin>/api`, `<origin>/god-mode`, `<origin>/spaces` and
 `<origin>/live`. That only works when a single origin fronts everything, which
 is what the proxy provides. Do not give Web, Admin or Space their own public
 domains.
+
+## thefleet integration
+
+The API service carries two variables for the Fleet tab:
+
+```
+THEFLEET_DEFAULT_URL=https://thefleet-production.up.railway.app
+THEFLEET_DEFAULT_KEY=bk_...   (a bot key minted on the fleet's Agents screen)
+```
+
+A workspace admin can enable Fleet with this instance key or paste a
+workspace-specific key that overrides it. Only the API needs them.
 
 ## Static asset rate limit
 

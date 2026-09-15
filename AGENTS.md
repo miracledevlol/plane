@@ -34,3 +34,19 @@ Prereq (once): `./setup.sh` — generates `apps/api/.env` from `.env.example`.
 - Teardown: `docker compose -f docker-compose-test.yml down -v`
 
 See `apps/api/tests/RUNNING_TESTS.md` for the full walkthrough and troubleshooting; see `apps/api/tests/TESTING_GUIDE.md` for test conventions and fixtures.
+
+## thefleet (web data backend)
+
+Workspaces can connect to **thefleet**, an external scrape/search/crawl
+service, from the Fleet tab. `docs/thefleet-integration.md` is the fleet's
+own integration guide. In this repo:
+
+- The `bk_` bot key is stored encrypted per workspace
+  (`WorkspaceFleetIntegration`) and only ever used server-side. The web app
+  talks to `/api/workspaces/<slug>/fleet/...`, which proxies to the fleet with
+  that key. Never send the key to the browser or log it.
+- `plane/utils/thefleet.py` is the only place that builds fleet URLs. Fleet
+  error codes (`scope_denied`, `host_denied`, `quota_*`, `job_failed`...) are
+  passed through unchanged; they are policy, not bugs.
+- A 202 from a service call means the fleet is still working; the web store
+  re-posts the same params and never adds `fresh` on a retry.

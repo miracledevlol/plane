@@ -33,6 +33,7 @@ export const RESTRICTED_URLS: string[] = [
   "disco",
   "silo",
   "chat",
+  "fleet",
   "calendar",
   "drive",
   "channels",
@@ -271,6 +272,13 @@ export const WORKSPACE_SIDEBAR_STATIC_NAVIGATION_ITEMS: Record<string, IWorkspac
     access: [EUserWorkspaceRoles.ADMIN, EUserWorkspaceRoles.MEMBER, EUserWorkspaceRoles.GUEST],
     highlight: (pathname: string, url: string) => pathname.includes(url),
   },
+  fleet: {
+    key: "fleet",
+    labelTranslationKey: "sidebar.fleet",
+    href: `/fleet/`,
+    access: [EUserWorkspaceRoles.ADMIN, EUserWorkspaceRoles.MEMBER, EUserWorkspaceRoles.GUEST],
+    highlight: (pathname: string, url: string) => pathname.includes(url),
+  },
   projects: {
     key: "projects",
     labelTranslationKey: "projects",
@@ -283,6 +291,7 @@ export const WORKSPACE_SIDEBAR_STATIC_NAVIGATION_ITEMS: Record<string, IWorkspac
 export const WORKSPACE_SIDEBAR_STATIC_NAVIGATION_ITEMS_LINKS: IWorkspaceSidebarNavigationItem[] = [
   WORKSPACE_SIDEBAR_STATIC_NAVIGATION_ITEMS["home"],
   WORKSPACE_SIDEBAR_STATIC_NAVIGATION_ITEMS["chat"],
+  WORKSPACE_SIDEBAR_STATIC_NAVIGATION_ITEMS["fleet"],
 ];
 
 export const WORKSPACE_SIDEBAR_STATIC_PINNED_NAVIGATION_ITEMS_LINKS: IWorkspaceSidebarNavigationItem[] = [
