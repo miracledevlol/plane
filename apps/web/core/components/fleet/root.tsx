@@ -17,6 +17,7 @@ import { useUserPermissions } from "@/hooks/store/user";
 import { FleetJobsPanel } from "./jobs-panel";
 import { describeFleetError } from "./json-view";
 import { FleetOverviewPanel } from "./overview-panel";
+import { FleetSearchPanel } from "./search";
 import { FleetServicesPanel } from "./services-panel";
 import { FleetSettingsForm } from "./settings-form";
 import { FleetWatchesPanel } from "./watches-panel";
@@ -25,9 +26,10 @@ type Props = {
   workspaceSlug: string;
 };
 
-type TTab = "overview" | "services" | "watches" | "jobs" | "settings";
+type TTab = "search" | "overview" | "services" | "watches" | "jobs" | "settings";
 
 const TABS: { key: TTab; label: string; adminOnly?: boolean }[] = [
+  { key: "search", label: "Search" },
   { key: "overview", label: "Overview" },
   { key: "services", label: "Services" },
   { key: "watches", label: "Watches" },
@@ -38,12 +40,18 @@ const TABS: { key: TTab; label: string; adminOnly?: boolean }[] = [
 export const FleetRoot = observer(function FleetRoot(props: Props) {
   const { workspaceSlug } = props;
   // states
-  const [activeTab, setActiveTab] = useState<TTab>("overview");
+  const [activeTab, setActiveTab] = useState<TTab>("search");
   // store hooks
   const { settingsLoader, fetchSettings, isReady } = useFleet();
   const { allowPermissions } = useUserPermissions();
   // derived values
   const isAdmin = allowPermissions([EUserPermissions.ADMIN], EUserPermissionsLevel.WORKSPACE, workspaceSlug);
+  // the fleet's job endpoint is closed to guests, so only members and admins can run a search
+  const canSearch = allowPermissions(
+    [EUserPermissions.ADMIN, EUserPermissions.MEMBER],
+    EUserPermissionsLevel.WORKSPACE,
+    workspaceSlug
+  );
   const isLoading = settingsLoader[workspaceSlug] === "init-loader" || settingsLoader[workspaceSlug] === undefined;
   const ready = isReady(workspaceSlug);
   const visibleTabs = TABS.filter((tab) => !tab.adminOnly || isAdmin);
@@ -98,7 +106,8 @@ export const FleetRoot = observer(function FleetRoot(props: Props) {
           </button>
         ))}
       </div>
-      <div className="min-h-0 flex-1 overflow-y-auto p-4">
+      <div className={cn("min-h-0 flex-1 overflow-y-auto", activeTab === "search" ? "p-0" : "p-4")}>
+        {activeTab === "search" && <FleetSearchPanel workspaceSlug={workspaceSlug} canSearch={canSearch} />}
         {activeTab === "overview" && <FleetOverviewPanel workspaceSlug={workspaceSlug} />}
         {activeTab === "services" && <FleetServicesPanel workspaceSlug={workspaceSlug} />}
         {activeTab === "watches" && <FleetWatchesPanel workspaceSlug={workspaceSlug} />}

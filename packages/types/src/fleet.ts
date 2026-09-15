@@ -84,15 +84,70 @@ export type TFleetCheck = TFleetJson & {
 
 export type TFleetJobKind = "scrape" | "search" | "crawl" | "browse";
 
-export type TFleetJobPayload = TFleetJson & {
-  kind: TFleetJobKind;
-};
+/** `queued` and `running` are open; every other status is terminal. */
+export type TFleetJobStatus = "queued" | "running" | "done" | "failed" | "cancelled" | "expired";
 
 export type TFleetJob = TFleetJson & {
   id?: string;
   kind?: string;
   status?: string;
+  input?: TFleetJson;
   result?: unknown;
+  error?: string | TFleetJson;
+  pages?: number;
+  resultBytes?: number;
+  durationMs?: number;
+  createdAt?: string;
+  startedAt?: string;
+  finishedAt?: string;
+  expiresAt?: string;
+};
+
+/** Body of `POST /jobs`. `wait` is the seconds (0-60) the fleet holds the request open. */
+export type TFleetJobPayload = {
+  kind: TFleetJobKind;
+  input: TFleetJson;
+  wait?: number;
+};
+
+/** The fleet runs one engine per search job, so a multi-engine search is one job each. */
+export type TFleetSearchEngine = "google" | "bing" | "ddg" | "yahoo";
+
+export type TFleetSearchResult = {
+  position: number;
+  title: string;
+  url: string;
+  description: string;
+  content?: string;
+};
+
+export type TFleetSearchParams = {
+  query: string;
+  engines: TFleetSearchEngine[];
+  limit: number;
+  fetchContent: boolean;
+};
+
+export type TFleetSearchRunStatus = "queued" | "running" | "done" | "failed";
+
+/** One engine's job inside a search session. */
+export type TFleetSearchRun = {
+  engine: TFleetSearchEngine;
+  jobId?: string;
+  status: TFleetSearchRunStatus;
+  results: TFleetSearchResult[];
+  error?: string;
+  durationMs?: number;
+  finishedAt?: string;
+};
+
+/** One search the operator ran, with a run per engine. */
+export type TFleetSearchSession = {
+  id: string;
+  workspaceSlug: string;
+  params: TFleetSearchParams;
+  startedAt: string;
+  runs: TFleetSearchRun[];
 };
 
 export type TFleetConnectionTest = {
