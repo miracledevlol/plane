@@ -64,6 +64,8 @@ import type { IRouterStore } from "./router.store";
 import { RouterStore } from "./router.store";
 import type { IChatStore } from "./chat/chat.store";
 import { ChatStore } from "./chat/chat.store";
+import type { IFleetStore } from "./fleet/fleet.store";
+import { FleetStore } from "./fleet/fleet.store";
 import type { IStickyStore } from "./sticky/sticky.store";
 import { StickyStore } from "./sticky/sticky.store";
 import type { IThemeStore } from "./theme.store";
@@ -102,6 +104,7 @@ export class CoreRootStore {
   favorite: IFavoriteStore;
   stickyStore: IStickyStore;
   chatStore: IChatStore;
+  fleetStore: IFleetStore;
   editorAssetStore: IEditorAssetStore;
   workItemFilters: IWorkItemFilterStore;
   powerK: IPowerKStore;
@@ -134,6 +137,7 @@ export class CoreRootStore {
     this.favorite = new FavoriteStore(this);
     this.stickyStore = new StickyStore();
     this.chatStore = new ChatStore();
+    this.fleetStore = new FleetStore();
     this.editorAssetStore = new EditorAssetStore();
     this.analytics = new AnalyticsStore();
     this.workItemFilters = new WorkItemFilterStore();
@@ -170,6 +174,7 @@ export class CoreRootStore {
     this.favorite = new FavoriteStore(this);
     this.stickyStore = new StickyStore();
     this.chatStore = new ChatStore();
+    this.fleetStore = new FleetStore();
     this.editorAssetStore = new EditorAssetStore();
     this.workItemFilters = new WorkItemFilterStore();
     this.powerK = new PowerKStore();
