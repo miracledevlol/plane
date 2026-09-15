@@ -12,7 +12,6 @@ import type {
   TFleetConnectionTest,
   TFleetJob,
   TFleetJobPayload,
-  TFleetJson,
   TFleetSearchEngine,
   TFleetSearchParams,
   TFleetSearchResult,
@@ -26,6 +25,9 @@ import type {
   TFleetSettingsPayload,
   TFleetUsage,
   TFleetWatch,
+  TFleetWatchPayload,
+  TFleetWatchSnapshot,
+  TFleetWatchTotals,
   TLoader,
 } from "@plane/types";
 import { FleetService } from "@/services/fleet.service";
@@ -134,7 +136,9 @@ export interface IFleetStore {
   services: Record<string, TFleetService[]>; // workspaceSlug -> services
   servicesLoader: Record<string, TLoader>;
   watches: Record<string, TFleetWatch[]>; // workspaceSlug -> watches
+  watchTotals: Record<string, TFleetWatchTotals>; // workspaceSlug -> counters sent with the watches
   checks: Record<string, TFleetCheck[]>; // workspaceSlug -> newest checks
+  checksByWatch: Record<string, Record<string, TFleetCheck[]>>; // workspaceSlug -> watchId -> newest checks
   jobs: Record<string, TFleetJob>; // jobId -> job
   jobIdsByWorkspace: Record<string, string[]>; // workspaceSlug -> jobIds, newest first
   searchSessions: Record<string, TFleetSearchSession>; // sessionId -> session
@@ -158,9 +162,10 @@ export interface IFleetStore {
     serviceSlug: string,
     payload: TFleetServiceCallPayload
   ) => Promise<TFleetServiceCallResult>;
-  fetchWatches: (workspaceSlug: string) => Promise<TFleetWatch[]>;
-  createWatch: (workspaceSlug: string, payload: TFleetJson) => Promise<TFleetWatch>;
+  fetchWatches: (workspaceSlug: string) => Promise<TFleetWatchSnapshot>;
+  createWatch: (workspaceSlug: string, payload: TFleetWatchPayload) => Promise<TFleetWatch>;
   fetchChecks: (workspaceSlug: string, query?: Record<string, string>) => Promise<TFleetCheck[]>;
+  fetchWatchChecks: (workspaceSlug: string, watchId: string, limit?: number) => Promise<TFleetCheck[]>;
   createJob: (workspaceSlug: string, payload: TFleetJobPayload) => Promise<TFleetJob>;
   fetchJob: (workspaceSlug: string, jobId: string) => Promise<TFleetJob>;
   runSearch: (workspaceSlug: string, params: TFleetSearchParams) => Promise<string>;
@@ -174,7 +179,9 @@ export class FleetStore implements IFleetStore {
   services: Record<string, TFleetService[]> = {};
   servicesLoader: Record<string, TLoader> = {};
   watches: Record<string, TFleetWatch[]> = {};
+  watchTotals: Record<string, TFleetWatchTotals> = {};
   checks: Record<string, TFleetCheck[]> = {};
+  checksByWatch: Record<string, Record<string, TFleetCheck[]>> = {};
   jobs: Record<string, TFleetJob> = {};
   jobIdsByWorkspace: Record<string, string[]> = {};
   searchSessions: Record<string, TFleetSearchSession> = {};
@@ -199,7 +206,9 @@ export class FleetStore implements IFleetStore {
       services: observable,
       servicesLoader: observable,
       watches: observable,
+      watchTotals: observable,
       checks: observable,
+      checksByWatch: observable,
       jobs: observable,
       jobIdsByWorkspace: observable,
       searchSessions: observable,
@@ -214,6 +223,7 @@ export class FleetStore implements IFleetStore {
       fetchWatches: action,
       createWatch: action,
       fetchChecks: action,
+      fetchWatchChecks: action,
       createJob: action,
       fetchJob: action,
       setActiveSearchSession: action,
@@ -313,19 +323,33 @@ export class FleetStore implements IFleetStore {
 
   fetchWatches = async (workspaceSlug: string) => {
     const response = await this.fleetService.getWatches(workspaceSlug);
-    runInAction(() => set(this.watches, [workspaceSlug], response));
+    runInAction(() => {
+      set(this.watches, [workspaceSlug], response.watches);
+      set(this.watchTotals, [workspaceSlug], response.totals);
+    });
     return response;
   };
 
-  createWatch = async (workspaceSlug: string, payload: TFleetJson) => {
+  createWatch = async (workspaceSlug: string, payload: TFleetWatchPayload) => {
     const response = await this.fleetService.createWatch(workspaceSlug, payload);
-    runInAction(() => set(this.watches, [workspaceSlug], [response, ...(this.watches[workspaceSlug] ?? [])]));
+    runInAction(() => {
+      // a 200 means the watch was already on this key, so the existing row is kept
+      const current = this.watches[workspaceSlug] ?? [];
+      const exists = response.id !== undefined && current.some((watch) => String(watch.id) === String(response.id));
+      if (!exists) set(this.watches, [workspaceSlug], [response, ...current]);
+    });
     return response;
   };
 
   fetchChecks = async (workspaceSlug: string, query?: Record<string, string>) => {
     const response = await this.fleetService.getChecks(workspaceSlug, query);
     runInAction(() => set(this.checks, [workspaceSlug], response));
+    return response;
+  };
+
+  fetchWatchChecks = async (workspaceSlug: string, watchId: string, limit = 30) => {
+    const response = await this.fleetService.getChecks(workspaceSlug, { watchId, limit: String(limit) });
+    runInAction(() => set(this.checksByWatch, [workspaceSlug, watchId], response));
     return response;
   };
 

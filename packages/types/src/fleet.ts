@@ -68,18 +68,110 @@ export type TFleetServiceCallResult = TFleetJson & {
   pending?: boolean;
 };
 
-export type TFleetWatch = TFleetJson & {
-  id?: string;
-  kind?: string;
-  target?: string;
+/** Every watch kind the fleet re-checks on its own clock. `target` is shaped per kind. */
+export type TFleetWatchKind = "uptime" | "xprofile" | "monitor" | "nftfloor" | "leaderboard" | "serp";
+
+/** One row of a leaderboard check. */
+export type TFleetLeaderboardStanding = {
+  position?: number;
+  name?: string;
+  wagered?: number | string;
+  prize?: number | string;
+  vip?: boolean;
 };
 
+/**
+ * One check of a watch. The shape is shared by every kind; fields that do not
+ * apply to a kind come back as `null`.
+ */
 export type TFleetCheck = TFleetJson & {
-  watchId?: string;
-  up?: boolean;
-  httpStatus?: number;
-  responseMs?: number;
+  /** Strictly increasing, so it doubles as the `sinceId` cursor. */
+  id?: number | string;
+  watchId?: number | string;
+  ok?: boolean | null;
+  error?: string | null;
+  httpStatus?: number | null;
+  checkedAt?: string;
+  /** Older bodies used `at`; newer ones `checkedAt`. */
   at?: string;
+  // xprofile
+  followers?: number | null;
+  following?: number | null;
+  posts?: number | null;
+  listed?: number | null;
+  displayName?: string | null;
+  bio?: string | null;
+  lastPostAt?: string | null;
+  statsSource?: string | null;
+  // monitor (price is kept as the exact string the page showed)
+  price?: string | null;
+  priceSource?: string | null;
+  // uptime
+  up?: boolean | null;
+  responseMs?: number | null;
+  // nftfloor
+  floorPrice?: string | null;
+  floorSymbol?: string | null;
+  owners?: number | null;
+  volume?: string | number | null;
+  // leaderboard
+  raceName?: string | null;
+  raceStatus?: string | null;
+  sponsor?: string | null;
+  currency?: string | null;
+  prizePool?: string | number | null;
+  wagered?: string | number | null;
+  startsAt?: string | null;
+  endsAt?: string | null;
+  players?: number | null;
+  standings?: TFleetLeaderboardStanding[] | null;
+  prizes?: Array<{ position?: number; amount?: string | number; percentage?: number }> | null;
+  // serp
+  engine?: string | null;
+  keyword?: string | null;
+  position?: number | null;
+  resultsTotal?: number | null;
+};
+
+export type TFleetWatch = TFleetJson & {
+  id?: number | string;
+  kind?: TFleetWatchKind | string;
+  target?: string;
+  /** A clickable URL for the target, when the fleet can build one. */
+  url?: string;
+  /** Operator pause state. */
+  enabled?: boolean;
+  /** A re-check is in progress. */
+  checking?: boolean;
+  lastCheckedAt?: string | null;
+  lastError?: string | null;
+  /** The newest successful check. */
+  latest?: TFleetCheck | null;
+};
+
+/** Counters the fleet sends alongside `GET /watches`. */
+export type TFleetWatchTotals = {
+  watches?: number;
+  xprofiles?: number;
+  priceUrls?: number;
+  uptimeUrls?: number;
+  collections?: number;
+  serpKeywords?: number;
+  followers?: number;
+  following?: number;
+  posts?: number;
+};
+
+export type TFleetWatchSnapshot = {
+  watches: TFleetWatch[];
+  totals: TFleetWatchTotals;
+  asOf?: string;
+};
+
+/** Body of `POST /watches`. A 200 means the watch was already attached to this key. */
+export type TFleetWatchPayload = {
+  kind: TFleetWatchKind;
+  target: string;
 };
 
 export type TFleetJobKind = "scrape" | "search" | "crawl" | "browse";

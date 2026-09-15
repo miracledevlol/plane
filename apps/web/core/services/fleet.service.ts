@@ -19,6 +19,9 @@ import type {
   TFleetSettingsPayload,
   TFleetUsage,
   TFleetWatch,
+  TFleetWatchPayload,
+  TFleetWatchSnapshot,
+  TFleetWatchTotals,
 } from "@plane/types";
 // services
 import { APIService } from "@/services/api.service";
@@ -104,15 +107,21 @@ export class FleetService extends APIService {
       });
   }
 
-  async getWatches(workspaceSlug: string): Promise<TFleetWatch[]> {
+  /** `GET /watches` answers `{ watches, totals, asOf }`; older bodies are a bare list. */
+  async getWatches(workspaceSlug: string): Promise<TFleetWatchSnapshot> {
     return this.get(`${baseUrl(workspaceSlug)}/watches/`)
-      .then((res) => asList<TFleetWatch>(res?.data))
+      .then((res) => {
+        const body: unknown = res?.data;
+        const totals = isRecord(body) && isRecord(body.totals) ? (body.totals as TFleetWatchTotals) : {};
+        const asOf = isRecord(body) && typeof body.asOf === "string" ? body.asOf : undefined;
+        return { watches: asList<TFleetWatch>(body), totals, asOf };
+      })
       .catch((err) => {
         throw err?.response?.data;
       });
   }
 
-  async createWatch(workspaceSlug: string, payload: TFleetJson): Promise<TFleetWatch> {
+  async createWatch(workspaceSlug: string, payload: TFleetWatchPayload): Promise<TFleetWatch> {
     return this.post(`${baseUrl(workspaceSlug)}/watches/`, payload)
       .then((res) => unwrap<TFleetWatch>(res?.data, "watch"))
       .catch((err) => {

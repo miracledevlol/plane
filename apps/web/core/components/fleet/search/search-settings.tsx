@@ -9,9 +9,9 @@ import { useCallback, useEffect, useState } from "react";
 import { Switch } from "@plane/propel/switch";
 import { TOAST_TYPE, setToast } from "@plane/propel/toast";
 import type { TFleetSearchEngine } from "@plane/types";
-import { CustomSearchSelect, CustomSelect } from "@plane/ui";
 import { cn } from "@plane/utils";
 // local imports
+import { FleetSelect } from "../ui";
 import { ENGINES, engineLabel } from "./search-utils";
 
 export type TFleetSearchSettings = {
@@ -82,8 +82,11 @@ export function FleetSearchSettingsRow(props: Props) {
   // derived values
   const engineOptions = ENGINES.map((engine) => ({
     value: engine.key,
-    query: engine.label,
-    content: engine.label,
+    label: engine.label,
+  }));
+  const limitOptions = RESULT_LIMITS.map((limit) => ({
+    value: limit,
+    label: `${limit} per engine`,
   }));
   const enginesLabel =
     settings.engines.length > 2
@@ -92,39 +95,34 @@ export function FleetSearchSettingsRow(props: Props) {
 
   return (
     <div className={cn("flex flex-wrap items-center gap-2", className)}>
-      <CustomSearchSelect
+      <FleetSelect<TFleetSearchEngine>
         multiple
         value={settings.engines}
         options={engineOptions}
         disabled={disabled}
+        minSelected={1}
         label={<span className="text-12 text-secondary">{enginesLabel || "Pick an engine"}</span>}
         buttonClassName="px-2 py-1.5 rounded border border-subtle bg-surface-1"
-        onChange={(value: TFleetSearchEngine[]) => {
+        aria-label="Search engines"
+        onBlockedDeselect={() => {
           // the fleet needs at least one engine, so an empty pick keeps the current one
-          if (!value.length) {
-            setToast({
-              type: TOAST_TYPE.WARNING,
-              title: "Pick at least one engine",
-              message: "A search needs one engine.",
-            });
-            return;
-          }
-          onChange({ engines: value });
+          setToast({
+            type: TOAST_TYPE.WARNING,
+            title: "Pick at least one engine",
+            message: "A search needs one engine.",
+          });
         }}
+        onChange={(value) => onChange({ engines: value })}
       />
-      <CustomSelect
+      <FleetSelect<number>
         value={settings.limit}
+        options={limitOptions}
         disabled={disabled}
         label={<span className="text-12 text-secondary">{settings.limit} per engine</span>}
         buttonClassName="px-2 py-1.5 rounded border border-subtle bg-surface-1"
-        onChange={(value: number) => onChange({ limit: value })}
-      >
-        {RESULT_LIMITS.map((limit) => (
-          <CustomSelect.Option key={limit} value={limit}>
-            {limit} per engine
-          </CustomSelect.Option>
-        ))}
-      </CustomSelect>
+        aria-label="Results per engine"
+        onChange={(value) => onChange({ limit: value })}
+      />
       <div className="flex items-center gap-2 rounded border border-subtle bg-surface-1 px-2 py-1.5">
         <span className="text-12 text-secondary">Fetch page content</span>
         <Switch

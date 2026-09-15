@@ -20,7 +20,7 @@ import { FleetOverviewPanel } from "./overview-panel";
 import { FleetSearchPanel } from "./search";
 import { FleetServicesPanel } from "./services-panel";
 import { FleetSettingsForm } from "./settings-form";
-import { FleetWatchesPanel } from "./watches-panel";
+import { FleetWatchesPanel } from "./watches";
 
 type Props = {
   workspaceSlug: string;
